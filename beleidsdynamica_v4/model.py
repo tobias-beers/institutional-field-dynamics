@@ -1,10 +1,10 @@
 """
-Beleidsdynamica v4 Model: Relationeel, Dynamisch, Attractor-Bewust
+Institutional Field Dynamics v4: Relational, Dynamic, Attractor-Aware
 
-Kernwijzigingen t.o.v. v3:
-1. RELATIONELE U: Nutsfunctie hangt af van relaties met anderen
-2. DYNAMISCHE W: Invloedsmatrix evolueert tijdens simulatie
-3. ATTRACTOR-ANALYSE: Expliciete test van meerdere initialisaties
+Key extensions over v3:
+1. RELATIONAL U: Utility function depends on relations with others
+2. DYNAMIC W: Power matrix evolves during simulation
+3. ATTRACTOR ANALYSIS: Explicit test of multiple initializations
 """
 
 import numpy as np
@@ -14,7 +14,7 @@ from typing import List, Dict, Optional, Tuple
 
 @dataclass
 class Actor:
-    """Een actor in het beleidssysteem."""
+    """An actor in the institutional force field."""
     naam: str
     positie: np.ndarray
     kleur: str = '#666666'
@@ -25,40 +25,40 @@ class Actor:
 
 class Krachtenveld:
     """
-    Beleidsdynamica als krachtenveld (v4): Relationeel, Dynamisch, Attractor-Bewust.
+    Institutional dynamics as a force field (v4): Relational, Dynamic, Attractor-Aware.
 
-    KERNWIJZIGINGEN T.O.V. V3:
+    KEY EXTENSIONS OVER V3:
 
-    1. RELATIONELE U: Nutsfunctie hangt af van relaties met anderen
+    1. RELATIONAL U: Utility function depends on relations with others
        U_i = -½g_i||x_i - d_i||² - ½Σ_k α_ik||x_i - x_k||²
 
-    2. DYNAMISCHE W: Invloedsmatrix evolueert tijdens simulatie
+    2. DYNAMIC W: Power matrix evolves during simulation
        W_ik(t+1) = W_ik(t) + η·alignment(F_i, F_k)
 
-    3. ATTRACTOR-ANALYSE: Expliciete test van meerdere initialisaties
+    3. ATTRACTOR ANALYSIS: Explicit test of multiple initializations
 
     Parameters
     ----------
     actoren : List[Actor]
-        Lijst van actoren
+        List of actors
     U_config : dict
-        Configuratie van nutsfuncties per actor:
-        - 'doel': waar wil de actor heen?
-        - 'gewicht': hoe sterk trekt dit doel?
-        - 'alpha': dict van alignment-coëfficiënten naar andere actoren
-          (positief = wil dichtbij/samenwerking, negatief = wil weg/conflict)
+        Utility configuration per actor:
+        - 'doel': target ideal point
+        - 'gewicht': goal weight (intrinsic motivation strength)
+        - 'alpha': dict of relational coefficients toward other actors
+          (positive = cooperation/proximity, negative = conflict/distance)
     W : np.ndarray
-        Initiële invloedsmatrix. W[i,j] = invloed van j op i.
+        Initial power matrix. W[i,j] = influence of j on i.
     C : dict, optional
         Constraints per actor
     W_fixed : np.ndarray, optional
-        Masker voor welke W-elementen vast zijn (1=vast, 0=dynamisch)
+        Mask for fixed W elements (1=fixed, 0=dynamic)
     eta : float
-        Leersnelheid voor W-evolutie (0 = statisch W zoals v3)
+        Learning rate for W-evolution (0 = static W as in v3)
     alpha : float
-        Stap-grootte voor positie-update
+        Step size for position update
     ruis : float
-        Ruis in de dynamica
+        Noise in the dynamics
     """
 
     def __init__(self, actoren: List[Actor],
@@ -83,7 +83,7 @@ class Krachtenveld:
 
         self._build_alpha_matrix()
 
-        # Geschiedenis
+        # History
         self.geschiedenis = [[a.positie.copy() for a in actoren]]
         self.kracht_hist = []
         self.coherentie_hist = []
@@ -91,7 +91,7 @@ class Krachtenveld:
         self.W_hist = [W.copy()]
 
     def _build_alpha_matrix(self):
-        """Bouw de alpha-matrix (relationele component) uit U_config."""
+        """Build the alpha matrix (relational component) from U_config."""
         self.alpha_matrix = np.zeros((self.n_actoren, self.n_actoren))
         for i, actor in enumerate(self.actoren):
             config = self.U_config.get(actor.naam, {})
@@ -102,27 +102,27 @@ class Krachtenveld:
 
     def kracht(self, i: int) -> np.ndarray:
         """
-        Kracht op actor i = gradiënt van RELATIONELE nutsfunctie.
+        Force on actor i = gradient of RELATIONAL utility function.
 
-        F_i = g_i(d_i - x_i)              [trek naar doel]
-            + Σ_k α_ik(x_k - x_i)         [relationele kracht]
-            + Σ_k W_ik(x_k - x_i)         [institutionele kracht]
+        F_i = g_i(d_i - x_i)              [intrinsic: pull toward ideal]
+            + Σ_k α_ik(x_k - x_i)         [relational force]
+            + Σ_k W_ik(x_k - x_i)         [institutional force]
         """
         actor = self.actoren[i]
         config = self.U_config.get(actor.naam, {})
 
-        # Kracht uit eigen doel
+        # Intrinsic force: pull toward ideal
         doel = config.get('doel', actor.positie)
         gewicht = config.get('gewicht', 1.0)
         F_doel = gewicht * (doel - actor.positie)
 
-        # Kracht uit relationele component (α) - NIEUW in v4
+        # Relational force (α)
         F_relationeel = np.zeros(self.n_dims)
         for j, andere in enumerate(self.actoren):
             if i != j:
                 F_relationeel += self.alpha_matrix[i, j] * (andere.positie - actor.positie)
 
-        # Kracht uit institutionele invloed (W)
+        # Institutional force (W)
         F_institutioneel = np.zeros(self.n_dims)
         for j, andere in enumerate(self.actoren):
             if i != j:
@@ -135,9 +135,9 @@ class Krachtenveld:
 
     def update_W(self, krachten: List[np.ndarray]):
         """
-        Update W op basis van geobserveerde feedback (NIEUW in v4).
+        Update W based on observed force alignment (dynamic W-evolution).
 
-        Regel: als krachten gealigneerd zijn, groeit wederzijdse invloed.
+        Rule: when forces are aligned, mutual influence grows.
         """
         if self.eta <= 0:
             return
@@ -154,7 +154,7 @@ class Krachtenveld:
                         self.W[i, j] = np.clip(self.W[i, j] + delta_W, -1.0, 2.0)
 
     def coherentie(self) -> float:
-        """Meet hoe coherent de krachten zijn (WAARDENVRIJ)."""
+        """Measure force coherence (value-free: direction-agnostic)."""
         krachten = self.alle_krachten()
         F_totaal = np.sum(krachten, axis=0)
 
@@ -167,7 +167,7 @@ class Krachtenveld:
         return norm_totaal_sq / som_normen_sq
 
     def effectieve_coherentie(self, d: np.ndarray) -> float:
-        """Meet coherentie GEPROJECTEERD op gewenste richting d."""
+        """Measure coherence PROJECTED onto desired direction d."""
         krachten = self.alle_krachten()
         F_totaal = np.sum(krachten, axis=0)
 
@@ -181,25 +181,25 @@ class Krachtenveld:
         return (projectie ** 2) / (som_normen_sq * d_norm_sq)
 
     def energie(self) -> float:
-        """Totale 'energie' in het systeem."""
+        """Total energy in the system."""
         krachten = self.alle_krachten()
         return sum(np.linalg.norm(F) for F in krachten)
 
     def constructieve_spanning(self, d: Optional[np.ndarray] = None) -> float:
-        """Energie × effectieve coherentie."""
+        """Constructive tension: energy × effective coherence."""
         if d is not None:
             return self.energie() * self.effectieve_coherentie(d)
         return self.energie() * self.coherentie()
 
     def asymmetrie_W(self) -> float:
-        """Bereken asymmetrie-index van W."""
+        """Compute power asymmetry index A(W)."""
         W_norm = np.linalg.norm(self.W)
         if W_norm < 1e-10:
             return 0.0
         return np.linalg.norm(self.W - self.W.T) / W_norm
 
     def vind_attractor(self, max_stappen: int = 500, threshold: float = 0.01) -> np.ndarray:
-        """Vind de attractor vanuit huidige positie."""
+        """Find the attractor from current position."""
         origineel = [a.positie.copy() for a in self.actoren]
         W_origineel = self.W.copy()
 
@@ -224,11 +224,11 @@ class Krachtenveld:
                                 bereik: Tuple[float, float] = (2.0, 8.0),
                                 max_stappen: int = 500) -> List[np.ndarray]:
         """
-        NIEUW in v4: Vind attractoren vanuit meerdere startpunten.
+        Find attractors from multiple random starting points.
 
-        Dit is essentieel voor attractor-analyse:
-        - Als alle starts naar dezelfde attractor gaan → één stabiel evenwicht
-        - Als starts naar verschillende attractoren gaan → meerdere attractoren
+        Essential for attractor analysis:
+        - If all starts converge to the same attractor → single stable equilibrium
+        - If starts converge to different attractors → multi-stability
         """
         origineel = [a.positie.copy() for a in self.actoren]
         W_origineel = self.W.copy()
@@ -258,7 +258,7 @@ class Krachtenveld:
         return attractoren
 
     def _stap_zonder_history(self):
-        """Interne stap zonder history update."""
+        """Internal step without history update."""
         krachten = self.alle_krachten()
         self.update_W(krachten)
         for i, actor in enumerate(self.actoren):
@@ -266,7 +266,7 @@ class Krachtenveld:
             self._pas_constraints_toe(actor)
 
     def _pas_constraints_toe(self, actor: Actor):
-        """Pas constraints toe op één actor."""
+        """Apply constraints to one actor."""
         if actor.naam in self.C:
             c = self.C[actor.naam]
             for dim, (lo, hi) in c.items():
@@ -277,7 +277,7 @@ class Krachtenveld:
                      nieuwe_U_config: Optional[Dict[str, dict]] = None,
                      nieuwe_C: Optional[Dict[str, dict]] = None):
         """
-        BELEID = TRANSFORMATIE VAN HET VELD.
+        POLICY = TRANSFORMATION OF THE FIELD.
 
         P: (U, W, C, α) → (U', W', C', α')
         """
@@ -294,7 +294,7 @@ class Krachtenveld:
             self.C.update(nieuwe_C)
 
     def stap(self):
-        """Eén tijdstap met dynamische W-evolutie."""
+        """One time step with dynamic W-evolution."""
         krachten = self.alle_krachten()
         self.update_W(krachten)
 
@@ -315,7 +315,7 @@ class Krachtenveld:
         return np.array(self.geschiedenis)
 
     def reset(self):
-        """Reset geschiedenis."""
+        """Reset history."""
         self.geschiedenis = [[a.positie.copy() for a in self.actoren]]
         self.kracht_hist = []
         self.coherentie_hist = []

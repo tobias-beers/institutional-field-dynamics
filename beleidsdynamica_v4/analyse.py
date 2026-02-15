@@ -1,7 +1,7 @@
 """
-Beleidsdynamica v4 Analyse Tools
+Institutional Field Dynamics v4 — Analysis Tools
 
-Kernvraag: "Ontstaat samenwerking of conflict?"
+Core question: "Does the configuration produce cooperation or conflict?"
 """
 
 import numpy as np
@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Diagnose:
-    """Diagnose van een beleidssysteem (v4)."""
+    """Diagnostic result for an institutional force field (v4)."""
     asymmetrie_W: float
     coherentie: float
     effectieve_coherentie: float
@@ -22,27 +22,27 @@ class Diagnose:
     alpha_matrix: np.ndarray
     n_attractoren: int
     waarschuwingen: List[str]
-    samenwerking_score: float  # Nieuw in v4
+    samenwerking_score: float
 
 
 def diagnose(systeem, d_gewenst: Optional[np.ndarray] = None,
              test_attractoren: bool = True) -> Diagnose:
     """
-    Voer een diagnose uit op het systeem (v4).
+    Run diagnostics on the system (v4).
 
     Parameters
     ----------
     systeem : Krachtenveld
-        Het te analyseren systeem
+        The system to analyze
     d_gewenst : np.ndarray, optional
-        Gewenste richting. Default: [-1, 1, 1] (lager werkdruk, hoger autonomie, betere middelen)
+        Desired direction. Default: [-1, 1, 1] (lower workload, higher autonomy, more resources)
     test_attractoren : bool
-        Of attractor-analyse moet worden uitgevoerd (kan traag zijn)
+        Whether to run attractor analysis (can be slow)
 
     Returns
     -------
     Diagnose
-        Diagnose-object met alle metrieken
+        Diagnostic object with all metrics
     """
     if d_gewenst is None:
         d_gewenst = np.array([-1, 1, 1])
@@ -59,44 +59,43 @@ def diagnose(systeem, d_gewenst: Optional[np.ndarray] = None,
     for i, a in enumerate(systeem.actoren):
         krachten_dict[a.naam] = systeem.kracht(i)
 
-    # Attractor-analyse (nieuw in v4)
+    # Attractor analysis
     n_attractoren = 0
     if test_attractoren:
         attractoren = systeem.vind_attractoren_multi(n_starts=10)
         n_attractoren = len(attractoren)
 
-    # Samenwerking score: gemiddelde α (nieuw in v4)
+    # Cooperation score: mean α
     alpha_flat = systeem.alpha_matrix.flatten()
-    alpha_flat = alpha_flat[alpha_flat != 0]  # Exclude zeros (self)
+    alpha_flat = alpha_flat[alpha_flat != 0]
     samenwerking_score = np.mean(alpha_flat) if len(alpha_flat) > 0 else 0.0
 
-    # Waarschuwingen genereren
+    # Generate warnings
     waarschuwingen = []
 
     if asym > 0.8:
         waarschuwingen.append(
-            f"HOGE ASYMMETRIE W ({asym:.2f}): Invloedsstructuur is sterk eenzijdig."
+            f"HIGH ASYMMETRY W ({asym:.2f}): Power structure is strongly unilateral."
         )
 
     if samenwerking_score < -0.03:
         waarschuwingen.append(
-            f"CONFLICT DETECTIE: Gemiddelde α is negatief ({samenwerking_score:.3f}). "
-            "Actoren willen van elkaar weg → conflict-dynamiek."
+            f"CONFLICT DETECTED: Mean α is negative ({samenwerking_score:.3f}). "
+            "Actors push away from each other → conflict dynamics."
         )
     elif samenwerking_score > 0.05:
-        # Dit is positief, maar we noteren het
         pass
 
     if n_attractoren > 3:
         waarschuwingen.append(
-            f"MEERDERE ATTRACTOREN ({n_attractoren}): Systeem kan naar verschillende "
-            "evenwichten gaan → onvoorspelbaar."
+            f"MULTIPLE ATTRACTORS ({n_attractoren}): System can converge to different "
+            "equilibria → outcome depends on initial conditions."
         )
 
     if coh > 0.7 and eff_coh < 0.3:
         waarschuwingen.append(
-            f"COHERENTIE VERKEERDE RICHTING: Krachten coherent ({coh:.2f}) maar "
-            f"niet de goede kant op (eff. coh. = {eff_coh:.2f})."
+            f"COHERENCE IN WRONG DIRECTION: Forces are coherent ({coh:.2f}) but "
+            f"not toward the desired direction (eff. coh. = {eff_coh:.2f})."
         )
 
     return Diagnose(
@@ -116,7 +115,7 @@ def diagnose(systeem, d_gewenst: Optional[np.ndarray] = None,
 
 def vergelijk_beleid(systeem_voor, systeem_na, d_gewenst: Optional[np.ndarray] = None) -> Dict:
     """
-    Vergelijk systeem voor en na beleidsinterventie (v4).
+    Compare system before and after policy intervention (v4).
     """
     diag_voor = diagnose(systeem_voor, d_gewenst)
     diag_na = diagnose(systeem_na, d_gewenst)
@@ -132,19 +131,19 @@ def vergelijk_beleid(systeem_voor, systeem_na, d_gewenst: Optional[np.ndarray] =
     interpretatie = []
 
     if delta['samenwerking_score'] > 0.02:
-        interpretatie.append("SAMENWERKING TOEGENOMEN: α is positiever geworden")
+        interpretatie.append("COOPERATION INCREASED: α has become more positive")
     elif delta['samenwerking_score'] < -0.02:
-        interpretatie.append("CONFLICT TOEGENOMEN: α is negatiever geworden")
+        interpretatie.append("CONFLICT INCREASED: α has become more negative")
 
     if delta['n_attractoren'] < 0:
-        interpretatie.append(f"STABILITEIT VERBETERD: Minder attractoren ({diag_voor.n_attractoren} → {diag_na.n_attractoren})")
+        interpretatie.append(f"STABILITY IMPROVED: Fewer attractors ({diag_voor.n_attractoren} → {diag_na.n_attractoren})")
     elif delta['n_attractoren'] > 0:
-        interpretatie.append(f"STABILITEIT VERSLECHTERD: Meer attractoren ({diag_voor.n_attractoren} → {diag_na.n_attractoren})")
+        interpretatie.append(f"STABILITY DEGRADED: More attractors ({diag_voor.n_attractoren} → {diag_na.n_attractoren})")
 
     if delta['asymmetrie_W'] > 0.1:
-        interpretatie.append("W is ASYMMETRISCHER geworden")
+        interpretatie.append("W has become MORE ASYMMETRIC")
     elif delta['asymmetrie_W'] < -0.1:
-        interpretatie.append("W is SYMMETRISCHER geworden (meer wederkerigheid)")
+        interpretatie.append("W has become MORE SYMMETRIC (more reciprocal influence)")
 
     return {
         'voor': diag_voor,
@@ -154,39 +153,39 @@ def vergelijk_beleid(systeem_voor, systeem_na, d_gewenst: Optional[np.ndarray] =
     }
 
 
-def print_diagnose(diag: Diagnose, titel: str = "DIAGNOSE v4"):
-    """Print een diagnose in leesbaar formaat."""
+def print_diagnose(diag: Diagnose, titel: str = "DIAGNOSTIC v4"):
+    """Print diagnostic in readable format."""
     print("=" * 60)
     print(titel)
     print("=" * 60)
-    print(f"\nAsymmetrie W:          {diag.asymmetrie_W:.3f}")
-    print(f"Coherentie:            {diag.coherentie:.3f}")
-    print(f"Effectieve coherentie: {diag.effectieve_coherentie:.3f}")
-    print(f"Energie:               {diag.energie:.3f}")
-    print(f"Samenwerking score (α):{diag.samenwerking_score:.3f}")
-    print(f"Aantal attractoren:    {diag.n_attractoren}")
+    print(f"\nAsymmetry W:           {diag.asymmetrie_W:.3f}")
+    print(f"Coherence:             {diag.coherentie:.3f}")
+    print(f"Effective coherence:   {diag.effectieve_coherentie:.3f}")
+    print(f"Energy:                {diag.energie:.3f}")
+    print(f"Cooperation score (α): {diag.samenwerking_score:.3f}")
+    print(f"Number of attractors:  {diag.n_attractoren}")
 
-    print("\nPOSITIES:")
+    print("\nPOSITIONS:")
     for naam, pos in diag.posities.items():
         print(f"  {naam}: [{pos[0]:.2f}, {pos[1]:.2f}, {pos[2]:.2f}]")
 
     if diag.waarschuwingen:
-        print("\nWAARSCHUWINGEN:")
+        print("\nWARNINGS:")
         for w in diag.waarschuwingen:
-            print(f"  ⚠️  {w}")
+            print(f"  !! {w}")
     else:
-        print("\n✓ Geen waarschuwingen")
+        print("\nNo warnings")
     print()
 
 
 def analyseer_relaties(systeem) -> Dict:
     """
-    Analyseer de relationele structuur van het systeem (v4-specifiek).
+    Analyze the relational structure of the system (v4-specific).
 
     Returns
     -------
     dict
-        Analyse van α-matrix met interpretatie
+        Analysis of α-matrix with interpretation
     """
     alpha = systeem.alpha_matrix
     actoren = [a.naam for a in systeem.actoren]
@@ -196,32 +195,32 @@ def analyseer_relaties(systeem) -> Dict:
     for i in range(n):
         for j in range(n):
             if i != j and alpha[i, j] != 0:
-                richting = "wil naar" if alpha[i, j] > 0 else "wil weg van"
-                sterkte = "sterk" if abs(alpha[i, j]) > 0.1 else "zwak"
+                direction = "attracted to" if alpha[i, j] > 0 else "repelled by"
+                strength = "strong" if abs(alpha[i, j]) > 0.1 else "weak"
                 relaties.append({
-                    'van': actoren[i],
-                    'naar': actoren[j],
+                    'from': actoren[i],
+                    'to': actoren[j],
                     'alpha': alpha[i, j],
-                    'richting': richting,
-                    'sterkte': sterkte
+                    'direction': direction,
+                    'strength': strength
                 })
 
-    # Wederkerigheid check
-    wederkerig = []
-    eenzijdig = []
+    # Reciprocity check
+    reciprocal = []
+    unilateral = []
     for i in range(n):
         for j in range(i+1, n):
             a_ij = alpha[i, j]
             a_ji = alpha[j, i]
             if a_ij != 0 or a_ji != 0:
                 if np.sign(a_ij) == np.sign(a_ji) and a_ij != 0 and a_ji != 0:
-                    wederkerig.append((actoren[i], actoren[j]))
+                    reciprocal.append((actoren[i], actoren[j]))
                 else:
-                    eenzijdig.append((actoren[i], actoren[j]))
+                    unilateral.append((actoren[i], actoren[j]))
 
     return {
-        'relaties': relaties,
-        'wederkerig': wederkerig,
-        'eenzijdig': eenzijdig,
-        'gemiddelde_alpha': np.mean(alpha[alpha != 0]) if np.any(alpha != 0) else 0
+        'relations': relaties,
+        'reciprocal': reciprocal,
+        'unilateral': unilateral,
+        'mean_alpha': np.mean(alpha[alpha != 0]) if np.any(alpha != 0) else 0
     }

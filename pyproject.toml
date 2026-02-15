@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "beleidsdynamica-v4"
 version = "0.4.0"
-description = "Beleidsdynamica v4: Relationeel, Dynamisch, Attractor-Bewust"
+description = "Institutional Field Dynamics v4: Relational, Dynamic, Attractor-Aware"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [

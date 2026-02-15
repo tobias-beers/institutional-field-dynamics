@@ -63,8 +63,6 @@ The `experiments/` directory contains the computational experiments from the pap
 | Script | Description |
 |--------|-------------|
 | `ssrn_sensitivity.py` | W-perturbation, alpha-sweep, multi-expert robustness (SSRN paper Section 4.6) |
-| `ad_typologies.py` | Advisory drift typologies, mechanism, hysteresis, socialization |
-| `ad_ode_dynamics.py` | Continuous-time ODE formulation with phase portraits and bifurcation analysis |
 
 Run any experiment:
 

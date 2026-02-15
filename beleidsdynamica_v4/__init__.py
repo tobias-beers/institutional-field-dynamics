@@ -1,38 +1,35 @@
 """
-Beleidsdynamica v4: Relationeel, Dynamisch, Attractor-Bewust
+Institutional Field Dynamics v4: Relational, Dynamic, Attractor-Aware
 
-Kernvraag: "Ontstaat samenwerking of conflict?"
+Core question: "Does the configuration produce cooperation or conflict?"
 
-Dit model analyseert of beleid samenwerking (positieve α) of conflict (negatieve α)
-creëert, en hoe de invloedsstructuur W evolueert als gevolg.
+This model analyzes whether a policy configuration creates cooperation (positive α)
+or conflict (negative α), and how the power structure W evolves as a consequence.
 
-Uitbreidingen t.o.v. v3:
-1. Relationele U: nutsfunctie hangt ook af van nabijheid tot anderen (α)
-2. Dynamische W: invloedsmatrix evolueert op basis van samenwerking/conflict
-3. Attractor-analyse: expliciet testen van meerdere initialisaties
+Extensions over v3:
+1. Relational U: utility depends on proximity to other actors (α)
+2. Dynamic W: power matrix evolves based on cooperation/conflict
+3. Attractor analysis: explicit test of multiple initializations
 
-Gebruik:
+Usage:
     from beleidsdynamica_v4 import Actor, Krachtenveld, analyse
 
-    # Definieer actoren
-    actoren = [
-        Actor("Uitvoerder", np.array([5.0, 5.0, 5.0])),
-        Actor("Manager", np.array([5.0, 5.0, 5.0])),
+    actors = [
+        Actor("Ministry", np.array([3.5, 6.0, 5.0])),
+        Actor("Teacher",  np.array([4.0, 6.5, 5.5])),
     ]
 
-    # Definieer structuur met α (relationele component)
     U_config = {
-        "Uitvoerder": {
-            'doel': np.array([3.0, 7.0, 7.0]),
+        "Ministry": {
+            'doel': np.array([6.0, 4.0, 4.0]),
             'gewicht': 0.5,
-            'alpha': {'Manager': 0.1}  # Positief = samenwerking
+            'alpha': {'Teacher': 0.0}
         },
         ...
     }
 
-    # Analyseer met dynamische W
-    systeem = Krachtenveld(actoren, U_config, W, eta=0.01)
-    diagnose = analyse.diagnose(systeem)
+    system = Krachtenveld(actors, U_config, W, eta=0.01)
+    result = analyse.diagnose(system)
 """
 
 from .model import Actor, Krachtenveld

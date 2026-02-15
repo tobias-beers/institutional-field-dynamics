@@ -17,7 +17,7 @@ np.random.seed(42)
 OUT = os.path.join(os.path.dirname(__file__), 'figures')
 os.makedirs(OUT, exist_ok=True)
 
-# ── Passend Onderwijs baseline configuration (from v4 rapport) ──
+# ── Passend Onderwijs baseline configuration ──
 
 def make_passend_onderwijs(alpha_leraar_min=-0.05, alpha_leraar_swv=-0.03,
                             alpha_leraar_school=-0.02, W_scale=1.0,

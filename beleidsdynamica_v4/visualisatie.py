@@ -1,5 +1,5 @@
 """
-Beleidsdynamica v4 Visualisatie Tools
+Institutional Field Dynamics v4 — Visualization Tools
 """
 
 import numpy as np
@@ -8,15 +8,15 @@ from typing import List, Optional
 
 
 def plot_simulatie(systeem, titel: str, t_beleid: Optional[int] = None,
-                   labels: List[str] = ['Werkdruk', 'Autonomie', 'Middelen']):
+                   labels: List[str] = ['Workload', 'Autonomy', 'Resources']):
     """
-    Plot simulatie met v4-features: inclusief W-evolutie.
+    Plot simulation with v4 features including W-evolution.
     """
     hist = np.array(systeem.geschiedenis)
 
     fig, axes = plt.subplots(3, 3, figsize=(15, 12))
 
-    # Rij 1: Posities per dimensie
+    # Row 1: Positions per dimension
     for d, (ax, label) in enumerate(zip(axes[0], labels)):
         for i, actor in enumerate(systeem.actoren):
             ax.plot(hist[:, i, d], color=actor.kleur, linewidth=2, label=actor.naam)
@@ -32,7 +32,7 @@ def plot_simulatie(systeem, titel: str, t_beleid: Optional[int] = None,
         if d == 0:
             ax.legend(fontsize=8)
 
-    # Rij 2: Systeem-metrieken
+    # Row 2: System metrics
     ax = axes[1, 0]
     if systeem.coherentie_hist:
         ax.plot(systeem.coherentie_hist, color='#2ecc71', linewidth=2)
@@ -40,9 +40,9 @@ def plot_simulatie(systeem, titel: str, t_beleid: Optional[int] = None,
                         systeem.coherentie_hist, alpha=0.3, color='#2ecc71')
     if t_beleid:
         ax.axvline(x=t_beleid, color='red', linestyle='--', linewidth=2)
-    ax.set_ylabel('Coherentie')
-    ax.set_xlabel('Tijd')
-    ax.set_title('Coherentie', fontweight='bold')
+    ax.set_ylabel('Coherence')
+    ax.set_xlabel('Time')
+    ax.set_title('Coherence', fontweight='bold')
     ax.set_ylim(0, 1.1)
     ax.grid(alpha=0.3)
 
@@ -53,9 +53,9 @@ def plot_simulatie(systeem, titel: str, t_beleid: Optional[int] = None,
                         systeem.energie_hist, alpha=0.3, color='#e74c3c')
     if t_beleid:
         ax.axvline(x=t_beleid, color='red', linestyle='--', linewidth=2)
-    ax.set_ylabel('Energie')
-    ax.set_xlabel('Tijd')
-    ax.set_title('Energie', fontweight='bold')
+    ax.set_ylabel('Energy')
+    ax.set_xlabel('Time')
+    ax.set_title('Energy', fontweight='bold')
     ax.grid(alpha=0.3)
 
     ax = axes[1, 2]
@@ -65,12 +65,12 @@ def plot_simulatie(systeem, titel: str, t_beleid: Optional[int] = None,
         ax.fill_between(range(len(constr_span)), constr_span, alpha=0.3, color='#9b59b6')
     if t_beleid:
         ax.axvline(x=t_beleid, color='red', linestyle='--', linewidth=2)
-    ax.set_ylabel('Constructieve Spanning')
-    ax.set_xlabel('Tijd')
-    ax.set_title('Energie × Coherentie', fontweight='bold')
+    ax.set_ylabel('Constructive Tension')
+    ax.set_xlabel('Time')
+    ax.set_title('Energy × Coherence', fontweight='bold')
     ax.grid(alpha=0.3)
 
-    # Rij 3: W-evolutie (NIEUW in v4)
+    # Row 3: W-evolution
     ax = axes[2, 0]
     if systeem.W_hist and len(systeem.W_hist) > 1:
         W_hist = np.array(systeem.W_hist)
@@ -83,13 +83,13 @@ def plot_simulatie(systeem, titel: str, t_beleid: Optional[int] = None,
                            label=f'W[{i},{j}]', color=colors[(i*n_actors+j) % len(colors)])
     if t_beleid:
         ax.axvline(x=t_beleid, color='red', linestyle='--', linewidth=2)
-    ax.set_ylabel('W waarde')
-    ax.set_xlabel('Tijd')
-    ax.set_title('W-evolutie', fontweight='bold')
+    ax.set_ylabel('W value')
+    ax.set_xlabel('Time')
+    ax.set_title('W-evolution', fontweight='bold')
     ax.legend(fontsize=7, loc='best')
     ax.grid(alpha=0.3)
 
-    # Asymmetrie W over tijd
+    # W asymmetry over time
     ax = axes[2, 1]
     if systeem.W_hist and len(systeem.W_hist) > 1:
         W_hist = np.array(systeem.W_hist)
@@ -104,12 +104,12 @@ def plot_simulatie(systeem, titel: str, t_beleid: Optional[int] = None,
         ax.fill_between(range(len(asym)), asym, alpha=0.3, color='#8e44ad')
     if t_beleid:
         ax.axvline(x=t_beleid, color='red', linestyle='--', linewidth=2)
-    ax.set_ylabel('Asymmetrie')
-    ax.set_xlabel('Tijd')
-    ax.set_title('Asymmetrie W over tijd', fontweight='bold')
+    ax.set_ylabel('Asymmetry')
+    ax.set_xlabel('Time')
+    ax.set_title('W Asymmetry Over Time', fontweight='bold')
     ax.grid(alpha=0.3)
 
-    # Som van W
+    # Total W
     ax = axes[2, 2]
     if systeem.W_hist and len(systeem.W_hist) > 1:
         W_hist = np.array(systeem.W_hist)
@@ -118,9 +118,9 @@ def plot_simulatie(systeem, titel: str, t_beleid: Optional[int] = None,
         ax.fill_between(range(len(W_sum)), W_sum, alpha=0.3, color='#16a085')
     if t_beleid:
         ax.axvline(x=t_beleid, color='red', linestyle='--', linewidth=2)
-    ax.set_ylabel('Σ W')
-    ax.set_xlabel('Tijd')
-    ax.set_title('Totale invloed', fontweight='bold')
+    ax.set_ylabel('Sum W')
+    ax.set_xlabel('Time')
+    ax.set_title('Total Influence', fontweight='bold')
     ax.grid(alpha=0.3)
 
     fig.suptitle(titel, fontsize=14, fontweight='bold')
@@ -128,13 +128,12 @@ def plot_simulatie(systeem, titel: str, t_beleid: Optional[int] = None,
     return fig
 
 
-def plot_attractoren(systeem, attractoren: List[np.ndarray], titel: str = "Attractor-analyse"):
+def plot_attractoren(systeem, attractoren: List[np.ndarray], titel: str = "Attractor Analysis"):
     """
-    Visualiseer gevonden attractoren (v4-specifiek).
+    Visualize discovered attractors (v4-specific).
     """
     fig, ax = plt.subplots(figsize=(10, 8))
 
-    # Plot attractoren
     for idx, attr in enumerate(attractoren):
         for i, actor in enumerate(systeem.actoren):
             marker = 'o' if idx == 0 else ['s', '^', 'D', 'v', 'p'][idx % 5]
@@ -143,9 +142,9 @@ def plot_attractoren(systeem, attractoren: List[np.ndarray], titel: str = "Attra
                       c=actor.kleur, edgecolors='black', linewidth=2,
                       alpha=0.7, label=f'{actor.naam} (attr {idx+1})' if i == 0 else '')
 
-    ax.set_xlabel('Werkdruk')
-    ax.set_ylabel('Autonomie')
-    ax.set_title(f'{titel}: {len(attractoren)} attractor(en) gevonden', fontweight='bold')
+    ax.set_xlabel('Workload')
+    ax.set_ylabel('Autonomy')
+    ax.set_title(f'{titel}: {len(attractoren)} attractor(s) found', fontweight='bold')
     ax.legend(fontsize=8)
     ax.grid(alpha=0.3)
     ax.set_xlim(0, 10)
@@ -154,9 +153,9 @@ def plot_attractoren(systeem, attractoren: List[np.ndarray], titel: str = "Attra
     return fig
 
 
-def plot_relatienetwerk(systeem, titel: str = "Relatienetwerk"):
+def plot_relatienetwerk(systeem, titel: str = "Relation Network"):
     """
-    Visualiseer de α-matrix als netwerk (v4-specifiek).
+    Visualize the α-matrix as a network (v4-specific).
     """
     import matplotlib.patches as mpatches
 
@@ -166,7 +165,7 @@ def plot_relatienetwerk(systeem, titel: str = "Relatienetwerk"):
     angles = np.linspace(0, 2*np.pi, n, endpoint=False)
     radius = 3
 
-    # Posities van actoren in cirkel
+    # Actor positions in circle
     pos = {}
     for i, actor in enumerate(systeem.actoren):
         x = radius * np.cos(angles[i])
@@ -176,7 +175,7 @@ def plot_relatienetwerk(systeem, titel: str = "Relatienetwerk"):
         ax.scatter(x, y, s=500, c=actor.kleur, edgecolors='black', linewidth=2, zorder=10)
         ax.annotate(actor.naam, (x, y), ha='center', va='center', fontsize=9, fontweight='bold')
 
-    # Teken relaties (α)
+    # Draw relations (α)
     for i, actor_i in enumerate(systeem.actoren):
         for j, actor_j in enumerate(systeem.actoren):
             if i != j:
@@ -185,15 +184,14 @@ def plot_relatienetwerk(systeem, titel: str = "Relatienetwerk"):
                     x1, y1 = pos[actor_i.naam]
                     x2, y2 = pos[actor_j.naam]
 
-                    # Kleur: groen voor positief, rood voor negatief
                     color = '#27ae60' if alpha > 0 else '#e74c3c'
                     width = min(abs(alpha) * 20, 3)
 
                     ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
                                arrowprops=dict(arrowstyle='->', color=color, lw=width, alpha=0.6))
 
-    # Legenda
-    pos_patch = mpatches.Patch(color='#27ae60', label='Samenwerking (α > 0)')
+    # Legend
+    pos_patch = mpatches.Patch(color='#27ae60', label='Cooperation (α > 0)')
     neg_patch = mpatches.Patch(color='#e74c3c', label='Conflict (α < 0)')
     ax.legend(handles=[pos_patch, neg_patch], loc='upper right')
 
