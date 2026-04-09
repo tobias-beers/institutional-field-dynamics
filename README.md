@@ -2,7 +2,7 @@
 
 A force field model of multi-actor governance. Formalizes institutional dynamics as a system in which actors move through configuration space under three types of force: intrinsic motivation, social influence, and institutional pressure.
 
-**Paper:** Beers, T.J. (2026). *Institutional Field Dynamics: A Force Field Model of Multi-Actor Governance.* SSRN Working Paper.
+**Paper:** Beers, T.J. (2026). *Institutional Field Dynamics: A Force Field Model of Multi-Actor Governance.* SSRN Working Paper. [DOI: 10.2139/ssrn.6241218](https://dx.doi.org/10.2139/ssrn.6241218)
 
 ## What this does
 
@@ -80,7 +80,9 @@ Figures are saved to `experiments/figures/`.
   title={Institutional Field Dynamics: A Force Field Model of Multi-Actor Governance},
   author={Beers, Tobias J.},
   year={2026},
-  journal={SSRN Working Paper}
+  journal={SSRN Working Paper},
+  doi={10.2139/ssrn.6241218},
+  url={https://dx.doi.org/10.2139/ssrn.6241218}
 }
 ```
 
